@@ -131,6 +131,7 @@ def comparison(its2, its1):
 
 def faulty_seqs(its2,its1,chimers):
 	all_seqs=[]
+	good_seqs=[]
 	for i in chimers:
 		#print i
 		helplist=its2[i]
@@ -138,11 +139,12 @@ def faulty_seqs(its2,its1,chimers):
 		#print "calling refcomp with:",helplist
 		seqs=refcomp(helplist,its1)
 		all_seqs.append(seqs)
-	return sum(all_seqs,[])
+		pass_seqs=list(set(helplist) - set(seqs))
+		good_seqs.append(pass_seqs)
+	return sum(all_seqs,[]), sum(good_seqs,[])
 
 ####MAIN
 def main():
-	chims=[]
 	its2,its2out=its2_parse()
 	its1=its1_parse()
 	#First run, getting good and chimeric OTUs
@@ -154,9 +156,11 @@ def main():
 	print >>file2,chims
 	file2.close()
 	#Second step: getting sequences split between OTUs
-	faulty=faulty_seqs(its2, its1,chims)
+	faulty,good=faulty_seqs(its2, its1,chims)
 	file3=open(its2out + "_bad_seqs.txt","w")
+	file4=open(its2out + "_good_seqs.txt","w")
 	print >>file3,faulty
+	print >>file4, good
 	file3.close() 
 	return
 
