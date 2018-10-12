@@ -8,6 +8,7 @@ import operator
 def its2_parse():
 	its2={}
 	its2_file = sys.argv[1]
+	fileprefix = its2_file.split(".")[0]
 	separator="\t"
 	separator2=";size=[0-9]+;| "
 	with open(its2_file, "rU") as its2_file:
@@ -17,7 +18,7 @@ def its2_parse():
 			reps=seqs[0]
 			s=seqs[1:]
 			its2[reps]=s
-	return its2
+	return its2, fileprefix
 
 def its1_parse():
 	its1={}
@@ -37,11 +38,11 @@ def refcomp(lst1, d1, key=None):
 	if key == None:
 		k=lst1[0]
 		key_check="no"
-		print k, key_check
+		#print k, key_check
 	else:
 		k=key
 		key_check="yes"
-		print k, key_check
+		#print k, key_check
 	if not lst1:
 		pass
 	else:
@@ -51,13 +52,13 @@ def refcomp(lst1, d1, key=None):
 			comp=list(d1[lst1[0]])
 			comp.insert(0,lst1[0])
 			diff=set(ref) - set(comp)
-			print "diff",diff
+			#print "diff",diff
 			symdif=set(ref) ^ set(comp)
-			print "symdiff",symdif
+			#print "symdiff",symdif
 			if diff==symdif:
 				if key_check == "no": #how to get refcomp to run with both key and non-key?
-					print "no"
-					print diff
+					#print "no"
+					#print diff
 					return refcomp(list(diff), d1 )
 				else:
 					return refcomp(list(diff), d1,k)
@@ -69,18 +70,18 @@ def refcomp(lst1, d1, key=None):
 		#if key in d1 values
 		elif lst1[0] in sum(d1.values(),[]):
 			new_key=[ke for (ke, va) in d1.items() if lst1[0] in va][0]
-			print "new_key", new_key
+			#print "new_key", new_key
 			ref=lst1
 			comp=list(d1[new_key])
 			comp.insert(0,new_key)
 			diff=set(ref) - set(comp)
-			print "diff",diff
+			#print "diff",diff
 			symdif=set(ref) ^ set(comp)
-			print "symdiff",symdif
+			#print "symdiff",symdif
 			if diff==symdif:
 				if key_check == "no": #how to get refcomp to run with both key and non-key?
-					print "no"
-					print diff
+					#print "no"
+					#print diff
 					return refcomp(list(diff), d1 )
 				else:
 					return refcomp(list(diff), d1, k)
@@ -131,27 +132,32 @@ def comparison(its2, its1):
 def faulty_seqs(its2,its1,chimers):
 	all_seqs=[]
 	for i in chimers:
-		print i
+		#print i
 		helplist=its2[i]
 		helplist.insert(0,i)
-		print "calling refcomp with:",helplist
+		#print "calling refcomp with:",helplist
 		seqs=refcomp(helplist,its1)
 		all_seqs.append(seqs)
 	return sum(all_seqs,[])
 
-
 ####MAIN
 def main():
 	chims=[]
-	its2=its2_parse()
+	its2,its2out=its2_parse()
 	its1=its1_parse()
 	#First run, getting good and chimeric OTUs
 	passed,chims=comparison(its2,its1)
-	print passed
-	print chims
+	file1=open(its2out + "_passed_OTUs.txt","w")
+	file2=open(its2out + "_chimeric_OTUs.txt","w")
+	print >>file1,passed
+	file1.close()
+	print >>file2,chims
+	file2.close()
 	#Second step: getting sequences split between OTUs
 	faulty=faulty_seqs(its2, its1,chims)
-	print faulty
+	file3=open(its2out + "_bad_seqs.txt","w")
+	print >>file3,faulty
+	file3.close() 
 	return
 
 main()
