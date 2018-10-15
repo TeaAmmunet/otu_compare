@@ -11,6 +11,7 @@ def its2_parse():
 	fileprefix = its2_file.split(".")[0]
 	separator="\t"
 	separator2=";size=[0-9]+;| "
+	#separator2=" |,"
 	with open(its2_file, "rU") as its2_file:
 		for line in its2_file:
 			line=line.strip()
@@ -18,6 +19,7 @@ def its2_parse():
 			reps=seqs[0]
 			s=seqs[1:]
 			its2[reps]=s
+		#print its2
 	return its2, fileprefix
 
 def its1_parse():
@@ -25,6 +27,7 @@ def its1_parse():
 	its1_file=sys.argv[2]
 	separator="\t"
 	separator2=";size=[0-9]+;| "
+	#separator2=" |,"
 	with open(its1_file,"rU") as its1_file:
 		for line in its1_file:
 			line=line.strip()
@@ -32,6 +35,7 @@ def its1_parse():
 			reps=seqs[0]
 			s=seqs[1:]
 			its1[reps]=s
+		#print its1
 	return its1
 
 def refcomp(lst1, d1, key=None):
@@ -44,6 +48,7 @@ def refcomp(lst1, d1, key=None):
 		key_check="yes"
 		#print k, key_check
 	if not lst1:
+		#print "lst empty"
 		pass
 	else:
 		#If key in d1
@@ -52,9 +57,9 @@ def refcomp(lst1, d1, key=None):
 			comp=list(d1[lst1[0]])
 			comp.insert(0,lst1[0])
 			diff=set(ref) - set(comp)
-			#print "diff",diff
+			#print "diff",list(diff)[0:3]
 			symdif=set(ref) ^ set(comp)
-			#print "symdiff",symdif
+			#print "symdiff",list(symdif)[0:3]
 			if diff==symdif:
 				if key_check == "no": #how to get refcomp to run with both key and non-key?
 					#print "no"
@@ -87,6 +92,7 @@ def refcomp(lst1, d1, key=None):
 					return refcomp(list(diff), d1, k)
 			else:
 				if key_check =="no":
+					#print "return" ,lst1
 					return lst1
 				else:
 					return k
@@ -101,17 +107,22 @@ def comparison(its2, its1):
 	for key,values in its2.iteritems():
 		#print "starting key", key
 		if key in its1:
+			#print "key in its1"
 			if len(list(its2[key]))>len(list(its1[key])):
 				helplst=list(its2[key])
 			else:
 				helplst=list(its1[key])
 			helplst.insert(0,key)
+			#print "calling refcomp with",helplst[0:3]
 			out1=refcomp(helplst, its1, key)
 			if out1 != None:
+				#print "out",out1
 				chimers.append(out1)
 			else:
+				#print"key",key
 				passed.append(key)
-		if key in sum(its1.values(),[]):
+		elif key in sum(its1.values(),[]):
+			#print "key in values"
 			new_key=[ke for (ke, va) in its1.items() if key in va][0]
 			group=list(its1[new_key])
 			group.insert(0,new_key)
@@ -120,17 +131,22 @@ def comparison(its2, its1):
 				helplst.insert(0,key)
 			else:
 				helplst=group
-			#calling refcomp with helplst
+			#print "calling refcomp with", helplst[0:3]
 			out=refcomp(helplst, its2, key)
 			#if output empty, don't add
 			if out != None:
+				#print "out",out
 				chimers.append(out)
 			else:
+				#print "key",key
 				passed.append(key)
+		else:
+			print "key not found:", key
 	return passed, chimers
 
 def faulty_seqs(its2,its1,chimers):
-	all_seqs=[]
+	print "running faulty seqs"
+	bad_seqs=[]
 	good_seqs=[]
 	for i in chimers:
 		#print i
@@ -138,10 +154,17 @@ def faulty_seqs(its2,its1,chimers):
 		helplist.insert(0,i)
 		#print "calling refcomp with:",helplist
 		seqs=refcomp(helplist,its1)
-		all_seqs.append(seqs)
+		if  seqs:
+			#print "seqs",seqs
+		 	bad_seqs.append(seqs)
 		pass_seqs=list(set(helplist) - set(seqs))
-		good_seqs.append(pass_seqs)
-	return sum(all_seqs,[]), sum(good_seqs,[])
+		#print helplist[0:5]
+		#print seqs[0:5]
+		#print "pass1",pass_seqs
+		if pass_seqs:
+			#print "pass",pass_seqs
+			good_seqs.append(pass_seqs)
+	return sum(bad_seqs,[]), good_seqs
 
 ####MAIN
 def main():
@@ -151,17 +174,26 @@ def main():
 	passed,chims=comparison(its2,its1)
 	file1=open(its2out + "_passed_OTUs.txt","w")
 	file2=open(its2out + "_chimeric_OTUs.txt","w")
-	print >>file1,passed
-	file1.close()
+	for i in passed:
+		otu=its2[i]
+		otu.insert(0,i)
+		otu=','.join(otu)
+		#print otu
+		print >>file1,otu
 	print >>file2,chims
 	file2.close()
 	#Second step: getting sequences split between OTUs
 	faulty,good=faulty_seqs(its2, its1,chims)
 	file3=open(its2out + "_bad_seqs.txt","w")
-	file4=open(its2out + "_good_seqs.txt","w")
+	#print faulty
 	print >>file3,faulty
-	print >>file4, good
-	file3.close() 
+	file3.close()
+	#putting good seqs to passed OTUs as OTUs
+	for l in good:
+		l=','.join(l)
+		#print l
+		print >>file1, l
+	file1.close() 
 	return
 
 main()
