@@ -139,7 +139,7 @@ def refcomp(lst1, d1, key=None):
 					#take all other elements in lst1 but i, put i as first and call refcomp
 						#print "i",i
 						#print "list1", lst1[0:5]
-						new_lst=[x for x in lst1 if not i]
+						new_lst=[x for x in lst1 if x != i]
 						#print "new_lst", new_lst
 						new_lst.insert(0,i)
 						#print "calling refcomp with ", new_lst
