@@ -71,36 +71,36 @@ def refcomp(lst1, d1, key=None):
 		if key == None:
 			k=lst1[0]
 			key_check="no"
-			print k, key_check
+			#print k, key_check
 		else:
 			k=key
 			key_check="yes"
-			print k, key_check
+			#print k, key_check
 		#If key in d1
-			print "lst1[0]",lst1[0]
+			#print "lst1[0]",lst1[0]
 		if lst1[0] in d1:
 			ref=lst1
 			#print "d1",d1
 			comp=list(d1[lst1[0]])
 			comp.insert(0,lst1[0])
-			print "comp",comp
+			#print "comp",comp
 			diff=set(ref) - set(comp)
-			print "diff",list(diff)
+			#print "diff",list(diff)
 			symdif=set(ref) ^ set(comp)
-			print "symdiff",list(symdif)
+			#print "symdiff",list(symdif)
 			if diff==symdif:
 				if key_check == "no": #how to get refcomp to run with both key and non-key?
-					print "no"
+					#print "no"
 					#print diff
 					return list(diff)
 				else:
 					return refcomp(list(diff), d1,k)
 			else:
 				if key_check=="no":
-					print "diff", diff
+					#print "diff", diff
 					return list(diff)
 				else:
-					print "k",k
+					#print "k",k
 					return k
 		#if key in d1 values
 		elif lst1[0] in sum(d1.values(),[]):
@@ -109,11 +109,11 @@ def refcomp(lst1, d1, key=None):
 			ref=lst1
 			comp=list(d1[new_key])
 			comp.insert(0,new_key)
-			print "comp",comp
+			#print "comp",comp
 			diff=set(ref) - set(comp)
-			print "diff",diff
+			#print "diff",diff
 			symdif=set(ref) ^ set(comp)
-			print "symdiff",symdif
+			#print "symdiff",symdif
 			if diff==symdif:
 				if key_check == "no": #how to get refcomp to run with both key and non-key?
 					#print "no"
@@ -123,22 +123,26 @@ def refcomp(lst1, d1, key=None):
 					return refcomp(list(diff), d1, k)
 			else:
 				if key_check =="no":
-					print "return diff" ,diff
+					#print "return diff" ,diff
 					return list(diff)
 				else:
-					print "k",k
+					#print "k",k
 					return k
 		else:
 			if key_check=="no":
 				print "value not in dict:", lst1[0]
 				#Try to check if other elements present?
 				bad_collection=[]
+				new_lst=[]
 				for i in lst1:
 					if i in d1 or i in sum(d1.values(),[]):
 					#take all other elements in lst1 but i, put i as first and call refcomp
-						new_lst=lst1.remove(i)
+						#print "i",i
+						#print "list1", lst1[0:5]
+						new_lst=[x for x in lst1 if not i]
+						#print "new_lst", new_lst
 						new_lst.insert(0,i)
-						print "calling refcomp with ", new_lst
+						#print "calling refcomp with ", new_lst
 						return refcomp(new_lst, d1)
 					else:
 						bad_collection.append(i)
@@ -152,24 +156,24 @@ def comparison(d2, d1):
 	chimers=[]
 	passed=[]
 	for key,values in d2.iteritems():
-		print "starting key", key
+		#print "starting key", key
 		if key in d1:
-			print "key in d1"
+			#print "key in d1"
 			if len(list(d2[key]))>=len(list(d1[key])):
 				helplst=list(d2[key])
 				helplst.insert(0,key)
-				print "calling refcomp with",helplst
+				#print "calling refcomp with",helplst
 				out1=refcomp(helplst, d1, key)#changed
 			else:
 				helplst=list(d1[key])
 				helplst.insert(0,key)
-				print "calling refcomp with",helplst
+				#print "calling refcomp with",helplst
 				out1=refcomp(helplst, d1, key)#shanged
 			if out1 != None:
-				print "out",out1
+				#print "out",out1
 				chimers.append(out1)
 			else:
-				print"key",key
+				#print"key",key
 				passed.append(key)
 		elif key in sum(d1.values(),[]):
 			#print "key in values"
@@ -179,18 +183,18 @@ def comparison(d2, d1):
 			if len(list(d2[key]))>=len(group): #list in d2 longer
 				helplst=list(d2[key])
 				helplst.insert(0,key)
-				print "calling refcomp with", helplst
+				#print "calling refcomp with", helplst
 				out=refcomp(helplst, d1, key) #compare d2 to d1
 			else: #list in d1 longer
 				helplst=group
-				print "calling refcomp with", helplst
+				#print "calling refcomp with", helplst
 				out=refcomp(helplst, d2, key) #compare to d2
 			#if output empty, don't add
 			if out != None:
-				print "out",out
+				#print "out",out
 				chimers.append(out)
 			else:
-				print "key",key
+				#print "key",key
 				passed.append(key)
 		else:
 			print "key not found:", key
@@ -201,25 +205,25 @@ def faulty_seqs(d2,d1,chimers):
 	print "running faulty seqs"
 	bad_seqs=[]
 	good_seqs=[]
-	print "chimers", chimers
+	#print "chimers", chimers
 	for i in chimers:
-		print i
+		#print i
 		#length comparison here?
 		helplist=list(d2[i])
 		helplist.insert(0,i)
-		print "calling refcomp with:",helplist
+		#print "calling refcomp with:",helplist
 		seqs=refcomp(helplist,d1)
 		if  seqs:
-			print "seqs",seqs
+			#print "seqs",seqs
 		 	bad_seqs.extend(seqs)
 			pass_seqs=list(set(helplist) - set(seqs))
 		else:
 			pass_seqs=helplist
-			print "pass1",pass_seqs
+			#print "pass1",pass_seqs
 		if pass_seqs:
 			#print "pass",pass_seqs
 			good_seqs.append(pass_seqs)
-		print "bad",bad_seqs
+		#print "bad",bad_seqs
 	return bad_seqs, good_seqs
 
 ###############-------------------MAIN-----------------##############################
@@ -250,7 +254,7 @@ def main():
 	file1.close() 
 	#Third step, comparing to LSU
 	#""""
-	print "running with lsu..."
+	print "running third comparison..."
 	lsu=lsu_parse()
 	if lsu:
 		#lsu_input=open(its2out + "_passed_OTUs.txt","r+")
@@ -266,7 +270,7 @@ def main():
 		#print lsuinput
 		#print "keys",lsuinput.keys()
 		lsu_input.close()
-		print "running lsu comparison with:", lsuinput
+		#print "running lsu comparison with:", lsuinput
 		passed2,chims2=comparison(lsuinput,lsu)
 		lsu_input=open(its2out + "_passed_OTUs.txt","w")
 		for i in passed2:
@@ -281,7 +285,7 @@ def main():
 		print >>file2,chims2
 		file2.close()
 		faulty2,good2=faulty_seqs(lsuinput, lsu,chims2)
-		print "faulty",faulty2
+		#print "faulty",faulty2
 		file3=open(its2out + "_bad_seqs.txt","w")
 		print >>file3,faulty2
 		file3.close()
